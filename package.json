@@ -4,11 +4,6 @@
     "lint:fix": "eslint . --ext ts --fix",
     "prepare": "husky install"
   },
-  "lint-staged": {
-    "*.ts": [
-      "npm run lint"
-    ]
-  },
   "devDependencies": {
     "husky": "^7.0.4",
     "lint-staged": "^12.4.0"
