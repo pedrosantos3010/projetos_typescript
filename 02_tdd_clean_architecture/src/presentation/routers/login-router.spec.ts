@@ -1,5 +1,6 @@
 import {
     InternalServerError,
+    InvalidParamError,
     MissingParamError,
     UnauthorizedError,
 } from "../helpers/errors";
@@ -18,14 +19,36 @@ export class AuthUseCaseSpy {
     }
 }
 
+class EmailValidatorSpy {
+    public isEmailValid = true;
+
+    public isValid(email: string): boolean {
+        return this.isEmailValid;
+    }
+}
+
+const makeEmailValidator = (): EmailValidatorSpy => {
+    const emailValidator = new EmailValidatorSpy();
+    emailValidator.isEmailValid = true;
+    return emailValidator;
+};
+
+const makeAuthUseCaseSpy = (): AuthUseCaseSpy => {
+    const authUseCaseSpy = new AuthUseCaseSpy();
+    authUseCaseSpy.accessToken = "valid_token";
+    return authUseCaseSpy;
+};
+
 const makeLoginRouterSUT = (): {
     loginRouterSUT: LoginRouter;
     authUseCaseSpy: AuthUseCaseSpy;
+    emailValidator: EmailValidatorSpy;
 } => {
-    const authUseCaseSpy = new AuthUseCaseSpy();
-    authUseCaseSpy.accessToken = "valid_token";
-    const loginRouterSUT = new LoginRouter(authUseCaseSpy);
-    return { loginRouterSUT, authUseCaseSpy };
+    const authUseCaseSpy = makeAuthUseCaseSpy();
+    const emailValidator = makeEmailValidator();
+
+    const loginRouterSUT = new LoginRouter(authUseCaseSpy, emailValidator);
+    return { loginRouterSUT, authUseCaseSpy, emailValidator };
 };
 
 const makeHttpRequest = (
@@ -114,10 +137,27 @@ describe("Login Router", () => {
         });
 
         const authUseCaseWithErrorSpy = new AuthUseCaseWithError();
-        const loginRouterSUT = new LoginRouter(authUseCaseWithErrorSpy);
+        const loginRouterSUT = new LoginRouter(
+            authUseCaseWithErrorSpy,
+            makeEmailValidator()
+        );
         const httpResponse = await loginRouterSUT.route(httpRequest);
 
         expect(httpResponse.statusCode).toBe(500);
         expect(httpResponse.body).toEqual(new InternalServerError());
+    });
+
+    it("Should return 400 if an invalid email is provided", async () => {
+        const { loginRouterSUT, emailValidator } = makeLoginRouterSUT();
+        emailValidator.isEmailValid = false;
+
+        const httpRequest = makeHttpRequest({
+            email: "invalid_email@email.com",
+            password: "any_password",
+        });
+        const httpResponse = await loginRouterSUT.route(httpRequest);
+
+        expect(httpResponse.statusCode).toBe(400);
+        expect(httpResponse.body).toEqual(new InvalidParamError("email"));
     });
 });
