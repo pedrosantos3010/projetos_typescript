@@ -21,8 +21,10 @@ export class AuthUseCaseSpy {
 
 class EmailValidatorSpy {
     public isEmailValid = true;
+    public email = "";
 
     public isValid(email: string): boolean {
+        this.email = email;
         return this.isEmailValid;
     }
 }
@@ -159,5 +161,28 @@ describe("Login Router", () => {
 
         expect(httpResponse.statusCode).toBe(400);
         expect(httpResponse.body).toEqual(new InvalidParamError("email"));
+    });
+
+    it("Should return 500 if EmailValidator throws", async () => {
+        class EmailValidatorWithErrorSpy extends EmailValidatorSpy {
+            public override isValid(email: string): boolean {
+                throw new Error();
+            }
+        }
+
+        const httpRequest = makeHttpRequest({
+            email: "any_email@email.com",
+            password: "any_password",
+        });
+
+        const emailValidatorSpy = new EmailValidatorWithErrorSpy();
+        const loginRouterSUT = new LoginRouter(
+            makeAuthUseCaseSpy(),
+            emailValidatorSpy
+        );
+        const httpResponse = await loginRouterSUT.route(httpRequest);
+
+        expect(httpResponse.statusCode).toBe(500);
+        expect(httpResponse.body).toEqual(new InternalServerError());
     });
 });
