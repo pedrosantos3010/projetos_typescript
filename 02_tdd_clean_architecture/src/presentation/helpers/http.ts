@@ -1,4 +1,8 @@
-import { MissingParamError } from "./missing-param-error";
+import {
+    InternalServerError,
+    MissingParamError,
+    UnauthorizedError,
+} from "./errors";
 
 export interface Response {
     statusCode: number;
@@ -10,6 +14,13 @@ export interface Request {
 }
 
 export class HttpResponse {
+    public static created(body: unknown): Response {
+        return {
+            statusCode: 201,
+            body,
+        };
+    }
+
     public static badRequest(paramName: string): Response {
         return {
             statusCode: 400,
@@ -17,17 +28,17 @@ export class HttpResponse {
         };
     }
 
-    public static internalError(): Response {
+    public static unauthorized(): Response {
         return {
-            statusCode: 500,
-            body: { message: "internal server error." },
+            statusCode: 401,
+            body: new UnauthorizedError(),
         };
     }
 
-    public static created(body: unknown): Response {
+    public static internalError(): Response {
         return {
-            statusCode: 201,
-            body,
+            statusCode: 500,
+            body: new InternalServerError(),
         };
     }
 }
