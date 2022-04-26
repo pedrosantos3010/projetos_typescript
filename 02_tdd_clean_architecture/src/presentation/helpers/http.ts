@@ -4,9 +4,9 @@ import {
     UnauthorizedError,
 } from "./errors";
 
-export interface Response {
+export interface Response<T> {
     statusCode: number;
-    body: unknown;
+    body: T;
 }
 
 export interface Request {
@@ -14,28 +14,35 @@ export interface Request {
 }
 
 export class HttpResponse {
-    public static created(body: unknown): Response {
+    public static ok<T>(body: T): Response<T> {
+        return {
+            statusCode: 200,
+            body,
+        };
+    }
+
+    public static created<T>(body: T): Response<T> {
         return {
             statusCode: 201,
             body,
         };
     }
 
-    public static badRequest(paramName: string): Response {
+    public static badRequest(paramName: string): Response<MissingParamError> {
         return {
             statusCode: 400,
             body: new MissingParamError(paramName),
         };
     }
 
-    public static unauthorized(): Response {
+    public static unauthorized(): Response<UnauthorizedError> {
         return {
             statusCode: 401,
             body: new UnauthorizedError(),
         };
     }
 
-    public static internalError(): Response {
+    public static serverError(): Response<UnauthorizedError> {
         return {
             statusCode: 500,
             body: new InternalServerError(),
