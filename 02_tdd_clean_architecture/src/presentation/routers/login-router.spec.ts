@@ -30,9 +30,9 @@ class EmailValidatorSpy {
 }
 
 const makeEmailValidator = (): EmailValidatorSpy => {
-    const emailValidator = new EmailValidatorSpy();
-    emailValidator.isEmailValid = true;
-    return emailValidator;
+    const emailValidatorSpy = new EmailValidatorSpy();
+    emailValidatorSpy.isEmailValid = true;
+    return emailValidatorSpy;
 };
 
 const makeAuthUseCaseSpy = (): AuthUseCaseSpy => {
@@ -44,13 +44,13 @@ const makeAuthUseCaseSpy = (): AuthUseCaseSpy => {
 const makeLoginRouterSUT = (): {
     loginRouterSUT: LoginRouter;
     authUseCaseSpy: AuthUseCaseSpy;
-    emailValidator: EmailValidatorSpy;
+    emailValidatorSpy: EmailValidatorSpy;
 } => {
     const authUseCaseSpy = makeAuthUseCaseSpy();
-    const emailValidator = makeEmailValidator();
+    const emailValidatorSpy = makeEmailValidator();
 
-    const loginRouterSUT = new LoginRouter(authUseCaseSpy, emailValidator);
-    return { loginRouterSUT, authUseCaseSpy, emailValidator };
+    const loginRouterSUT = new LoginRouter(authUseCaseSpy, emailValidatorSpy);
+    return { loginRouterSUT, authUseCaseSpy, emailValidatorSpy };
 };
 
 const makeHttpRequest = (
@@ -150,8 +150,8 @@ describe("Login Router", () => {
     });
 
     it("Should return 400 if an invalid email is provided", async () => {
-        const { loginRouterSUT, emailValidator } = makeLoginRouterSUT();
-        emailValidator.isEmailValid = false;
+        const { loginRouterSUT, emailValidatorSpy } = makeLoginRouterSUT();
+        emailValidatorSpy.isEmailValid = false;
 
         const httpRequest = makeHttpRequest({
             email: "invalid_email@email.com",
@@ -184,5 +184,18 @@ describe("Login Router", () => {
 
         expect(httpResponse.statusCode).toBe(500);
         expect(httpResponse.body).toEqual(new InternalServerError());
+    });
+
+    it("Should call EmailValidator with the right params", async () => {
+        const { loginRouterSUT, emailValidatorSpy } = makeLoginRouterSUT();
+
+        const httpRequest = makeHttpRequest({
+            email: "any_email",
+            password: "any_password",
+        });
+
+        await loginRouterSUT.route(httpRequest);
+
+        expect(emailValidatorSpy.email).toEqual(httpRequest.body.email);
     });
 });
