@@ -1,4 +1,4 @@
-import { MissingParamError } from "../helpers/missing-param-error";
+import { MissingParamError, UnauthorizedError } from "../helpers/errors";
 import { LoginRouter } from "./login-router";
 
 export class AuthUseCaseSpy {
@@ -60,8 +60,7 @@ describe("Login Router", () => {
     });
 
     it("Should call AuthUseCase with correct params", async () => {
-        const { loginRouterSUT, authUseCaseSpy: authUseCase } =
-            makeLoginRouterSUT();
+        const { loginRouterSUT, authUseCaseSpy } = makeLoginRouterSUT();
 
         const httpRequest = {
             body: {
@@ -70,10 +69,25 @@ describe("Login Router", () => {
             },
         };
 
+        await loginRouterSUT.route(httpRequest);
+
+        expect(authUseCaseSpy.email).toEqual(httpRequest.body.email);
+        expect(authUseCaseSpy.password).toEqual(httpRequest.body.password);
+    });
+
+    it("Should return 401 when invalid credentials are provided", async () => {
+        const { loginRouterSUT, authUseCaseSpy } = makeLoginRouterSUT();
+
+        const httpRequest = {
+            body: {
+                email: "invalid_email@email.com",
+                password: "invalid_password",
+            },
+        };
+
         const httpResponse = await loginRouterSUT.route(httpRequest);
 
-        expect(httpResponse.statusCode).toBe(201);
-        expect(authUseCase.email).toEqual(httpRequest.body.email);
-        expect(authUseCase.password).toEqual(httpRequest.body.password);
+        expect(httpResponse.statusCode).toBe(401);
+        expect(httpResponse.body).toEqual(new UnauthorizedError());
     });
 });
