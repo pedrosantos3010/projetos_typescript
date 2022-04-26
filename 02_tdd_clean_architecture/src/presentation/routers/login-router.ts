@@ -1,3 +1,4 @@
+import { MissingParamError } from "../helpers/errors";
 import { HttpResponse, Request, Response } from "../helpers/http";
 import { AuthUseCaseSpy } from "./login-router.spec";
 import { Router } from "./router";
@@ -19,11 +20,13 @@ export class LoginRouter implements Router {
         try {
             const { email, password } = <AccountRequestDTO>request.body;
             if (!email) {
-                return HttpResponse.badRequest("email");
+                return HttpResponse.badRequest(new MissingParamError("email"));
             }
 
             if (!password) {
-                return HttpResponse.badRequest("password");
+                return HttpResponse.badRequest(
+                    new MissingParamError("password")
+                );
             }
 
             const accessToken = this._authUseCase.auth(email, password);

@@ -38,7 +38,7 @@ describe("Login Router", () => {
     it("Should return 400 if no email is provided", async () => {
         const { loginRouterSUT } = makeLoginRouterSUT();
 
-        const httpRequest = makeHttpRequest({ password: "any_email" });
+        const httpRequest = makeHttpRequest({ password: "any_password" });
         const httpResponse = await loginRouterSUT.route(httpRequest);
 
         expect(httpResponse.statusCode).toBe(400);

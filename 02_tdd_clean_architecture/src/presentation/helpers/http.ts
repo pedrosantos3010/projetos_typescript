@@ -28,10 +28,10 @@ export class HttpResponse {
         };
     }
 
-    public static badRequest(paramName: string): Response<MissingParamError> {
+    public static badRequest(error: Error): Response<MissingParamError> {
         return {
             statusCode: 400,
-            body: new MissingParamError(paramName),
+            body: error,
         };
     }
 
