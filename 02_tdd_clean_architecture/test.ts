@@ -1,3 +1,5 @@
 export class teste {
-  Teste() {}
+    Teste() {
+        console.log("Teste");
+    }
 }
