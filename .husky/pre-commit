@@ -2,4 +2,3 @@
 . "$(dirname "$0")/_/husky.sh"
 
 npx lint-staged
-cd 02_tdd_clean_architecture && npx run jest --passWithNoTests
