@@ -10,5 +10,7 @@ export default {
     coverageProvider: "v8",
 
     // A map from regular expressions to paths to transformers
-    // transform: undefined,
+    transform: {
+        "^.+\\.(t|j)sx?$": ["@swc/jest"],
+    },
 };
