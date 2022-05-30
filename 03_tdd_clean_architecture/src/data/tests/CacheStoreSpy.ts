@@ -1,33 +1,37 @@
-import { CacheStore } from "@/data/protocols/cache";
-import { PurchaseModel } from "@/domain/use-cases";
+import { CacheItem, CacheStore } from "@/data/protocols/cache";
 
-export enum CacheStoreSpyMessage {
+export enum CacheStoreSpyActions {
     delete,
     insert,
 }
 
-export class CacheStoreSpy implements CacheStore<PurchaseModel> {
-    public messages: Array<CacheStoreSpyMessage> = [];
+export class CacheStoreSpy<T> implements CacheStore<T> {
+    public actions: Array<CacheStoreSpyActions> = [];
     public deleteKey = "";
     public insertKey = "";
-    public items: Array<PurchaseModel> = [];
+    public insertValues?: CacheItem<T>;
 
     public delete(key: string): void {
-        this.messages.push(CacheStoreSpyMessage.delete);
+        this.actions.push(CacheStoreSpyActions.delete);
         this.deleteKey = key;
-        this.items = [];
+        this.insertValues = undefined;
     }
 
-    public insert(key: string, items: PurchaseModel[]): void {
-        this.messages.push(CacheStoreSpyMessage.insert);
+    public insert(key: string, value: CacheItem<T>): void {
+        this.actions.push(CacheStoreSpyActions.insert);
         this.insertKey = key;
-        this.items.push(...items);
+        this.insertValues = value;
+    }
+
+    public replace(key: string, value: CacheItem<T>): void {
+        this.delete(key);
+        this.insert(key, value);
     }
 
     public simulateDeleteError(): void {
         jest.spyOn(CacheStoreSpy.prototype, "delete").mockImplementationOnce(
             () => {
-                this.messages.push(CacheStoreSpyMessage.delete);
+                this.actions.push(CacheStoreSpyActions.delete);
                 throw new Error();
             }
         );
@@ -36,7 +40,7 @@ export class CacheStoreSpy implements CacheStore<PurchaseModel> {
     public simulateInsertError(): void {
         jest.spyOn(CacheStoreSpy.prototype, "insert").mockImplementationOnce(
             () => {
-                this.messages.push(CacheStoreSpyMessage.insert);
+                this.actions.push(CacheStoreSpyActions.insert);
                 throw new Error();
             }
         );
