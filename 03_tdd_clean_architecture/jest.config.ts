@@ -16,7 +16,8 @@ export default {
         "^.+\\.(t|j)sx?$": ["@swc/jest"],
     },
 
-    root: ["<rootDir>/src"],
+    roots: ["<rootDir>/src"],
+
     moduleNameMapper: {
         "@/(.*)": "<rootDir>/src/$1",
     },
